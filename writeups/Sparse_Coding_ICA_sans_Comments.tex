@@ -1,0 +1,89 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{SparseCoding-ICA}
+\author{Silence Dogood }
+\date{July 2016}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Sparse coding is based on the linear generative model:
+\begin{equation}
+    x = As + n
+\end{equation}
+where x is a data vector (e.g., pixels from an image patch, or a sound waveform), \textbf{A} is a matrix of ‘features’ or basis functions (each column is a different basis function),\textbf{s} is a vector of coefficients, and \textbf{n} is a vector of Gaussian ‘noise’ (typically i.i.d.). The aim here is to find a set of basis functions \textbf{A} which allow the data \textbf{x} to be represented as a set of sparse coefficient values \textbf{s} (lots of zeros on average). Usually the basis function matrix is overcomplete (more columns than rows), and the noise term is small relative to \textbf{As} and is included to account for residual structure that is not well described by the basis function model.The model distribution is given by:
+\begin{equation}
+    p(x) = \int{p(x|s)p_s(s) ds}
+\end{equation}
+If we assume Gaussian i.i.d. noise \textbf{n} with variance \textbf{$\sigma_n^2$} then the conditional distribution \textbf{p(x|s)} is given by:
+\begin{equation}
+    p(x|s) \propto e^{\frac{-|x - As|^2}{2\sigma_n^2}}
+\end{equation}
+The prior $p_s(\textbf{s})$ is parametrized as
+\begin{equation}
+    p_s(\textbf{s}) \propto e^{-\sum_i C(s_i)}
+\end{equation}
+\par Learning the basis function matrix \textbf{A} is accomplished by maximizing the average log-likelihood of the model via gradient ascent:
+\begin{equation}
+    \Delta\textbf{A} \propto \frac{d}{d\textbf{A}}\langle \log(p(\textbf{x})
+\end{equation}
+where $\langle\rangle$ denotes averaging over the entire set of data vectors \textbf{x}. Expanding this equation out yields:
+\begin{equation}
+    \Delta A \propto \frac{d}{dA} \langle \log\int p(x|s)p_s(s) ds \rangle
+\end{equation}
+substituting in the values for $p(x|s)$ and $p_s(s)$ yields:
+
+\newcommand{\pxss}{e^{-\frac{|x - As|^2}{2\sigma_n^2}}e^{-\sum_i C(s_i)}}
+
+\begin{equation}
+    \Delta A \propto \frac{d}{dA} \langle \log\int{\pxss ds} \rangle
+\end{equation}
+Applying the chain rule, where $\frac{d}{dx}\log f(x) = \frac{1}{f(x)}\frac{d}{dx}f(x)$
+\begin{equation}
+    \Delta A \propto \langle \frac{1}{\int\pxss}\frac{d}{dA}\int{\pxss ds} \rangle
+\end{equation}
+Noting that we can move the derivative with respect to \textbf{A} inside the integral because the integral is respect to \textbf{s}, yields:
+\begin{equation}
+    \Delta A \propto \langle \frac{1}{\int\pxss}\int\frac{d}{dA}\pxss ds \rangle
+\end{equation}
+$e^{-\sum_i C(s_i)}$ is a constant with respect to A thus
+\begin{equation}
+    \Delta A \propto \langle\frac{1}{\int\pxss}\int{\frac{2}{2\sigma_n^2}|x - As|s^T\pxss ds}\rangle
+\end{equation}
+If we omit $\frac{1}{\sigma_n^2}$ the following will still be proportional because it is a constant. Furthermore, we can combine the two integrals because they have the same bounds yielding
+\begin{equation}
+    \Delta A \propto \langle \int{|x - As|s^T\frac{\pxss}{\int\pxss ds} ds} \rangle
+\end{equation}
+The fraction on the right hand side is equivalent to $P(s|x)$ through application of Bayes' Rule. This yields the following learning rule
+\begin{equation}
+    \Delta A \propto \langle \int{|x - As|s^TP(s|x)ds}\rangle
+\end{equation}
+Thus, learning the basis functions requires us to sample from the posterior $p(s|x)$ and accumulate the average of the outer product $[x - As]s^T$ from these samples. Sampling from the posterior can be very slow, so in practice we take a single sample at the posterior maximum:
+\begin{equation}
+    \hat{s} = argmax_{s}p(s|x)
+\end{equation}
+which is equivalent to minimizing the negative log-posterior:
+\begin{equation}
+    \hat{s} = argmin_{s}-\log{p(s|x)}
+\end{equation}
+\begin{equation}
+    \hat{s} = argmin_{s}[\frac{\lambda_n}{2}|x - As|^2 + \sum_{i}C(s_i)]
+\end{equation}
+where $\lambda_n = \frac{1}{\sigma_n^2}$. Note that there is a simple, intuitive interpretation of equation (7): minimize squared error of the reconstruction (first term) plus a cost function on coefficient activity (second term). Minimizing this function can be accomplished via gradient descent, yielding
+\begin{equation}
+    \dot{s} \propto \lambda_{n}[b - Gs] - z(s)
+\end{equation}
+where $b = A^{T}x$, $G = A^{T}A$ and $z(s)$ has elements
+\begin{equation}
+    z_i = C^{'}(s_i)
+\end{equation}
+The solution $\hat{s}$ is obtained when $\dot{s} = 0$. Note that this differential equation can be implemented as a recurrent neural network with feedforward excitation \textbf{b}, recurrent inhibition \textbf{Gs}, and non-linear self-inhibition $\textbf{z(s)}^1$.
+\par
+The overall learning procedure thus involves a fast inner loop in which the coefficients $\dot{s}$ are computed for each data vector \textbf{x} via equation 8, and a slower outer loop in which the basis functions are adapted to the statistics of the entire dataset. The latter part is done by replacing the posterior $p(s|x)$ in equation 6 with the posterior maximum computed in equation 8, yielding the learning rule:
+\begin{equation}
+    \Delta{A} \propto \langle[x - A\hat{s}]\hat{s}^T]\rangle
+\end{equation}
+This essentially amounts to Hebbian learning between the residual $[x - A\hat{s}]$ and the inferred coefficients $\hat{s}$.If you want to try out this algorithm you can download the Matlab code from my webpage at http://redwood.berkeley.edu/bruno/sparsenet.
+\end{document}

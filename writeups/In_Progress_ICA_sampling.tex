@@ -1,0 +1,65 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{SparseCoding-ICA}
+\author{Team Unicorn}
+\date{July 2016}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Sparse coding is based on the linear generative model:
+\begin{equation}
+    x = As + n
+\end{equation}
+where x is a data vector (e.g., pixels from an image patch, or a sound waveform), \textbf{A} is a matrix of ‘features’ or basis functions (each column is a different basis function),\textbf{s} is a vector of coefficients, and \textbf{n} is a vector of Gaussian ‘noise’ (typically i.i.d.). The aim here is to find a set of basis functions \textbf{A} which allow the data \textbf{x} to be represented as a set of sparse coefficient values \textbf{s} (lots of zeros on average). Usually the basis function matrix is overcomplete (more columns than rows), and the noise term is small relative to \textbf{As} and is included to account for residual structure that is not well described by the basis function model.The model distribution is given by:
+\begin{equation}
+    p(x) = \int{p(x|s)p_s(s) ds}
+\end{equation}
+If we assume Gaussian i.i.d. noise \textbf{n} with variance \textbf{$\sigma_n^2$} then the conditional distribution \textbf{p(x|s)} is given by:
+\begin{equation}
+    p(x|s) \propto e^{\frac{-|x - As|^2}{2\sigma_n^2}}
+\end{equation}
+The prior $p_s(\textbf{s})$ is parametrized as
+\begin{equation}
+    p_s(\textbf{s}) \propto e^{-\sum_i C(s_i)}
+\end{equation}
+\par Learning the basis function matrix \textbf{A} is accomplished by maximizing the average log-likelihood of the model via gradient ascent:
+\begin{equation}
+    \Delta\textbf{A} \propto \frac{d}{d\textbf{A}}\langle \log(p(\textbf{x})
+\end{equation}
+where $\langle\rangle$ denotes averaging over the entire set of data vectors \textbf{x}. Expanding this equation out yields:
+\begin{equation}
+    \Delta A \propto \frac{d}{dA} \langle \log\int p(x|s)p_s(s) ds \rangle
+\end{equation}
+substituting in the values for $p(x|s)$ and $p_s(s)$ yields:
+
+\newcommand{\pxss}{e^{-\frac{|x - As|^2}{2\sigma_n^2}}e^{-\sum_i C(s_i)}}
+
+\begin{equation}
+    \Delta A \propto \frac{d}{dA} \langle \log\int{\pxss ds} \rangle
+\end{equation}
+Applying the chain rule, where $\frac{d}{dx}\log f(x) = \frac{1}{f(x)}\frac{d}{dx}f(x)$
+\begin{equation}
+    \Delta A \propto \langle \frac{1}{\int\pxss}\frac{d}{dA}\int{\pxss ds} \rangle
+\end{equation}
+Noting that we can move the derivative with respect to \textbf{A} inside the integral because the integral is respect to \textbf{s}, yields:
+\begin{equation}
+    \Delta A \propto \langle \frac{1}{\int\pxss}\int\frac{d}{dA}\pxss ds \rangle
+\end{equation}
+$e^{-\sum_i C(s_i)}$ is a constant with respect to A thus
+\begin{equation}
+    \Delta A \propto \langle\frac{1}{\int\pxss}\int{\frac{2}{2\sigma_n^2}|x - As|s^T\pxss ds}\rangle
+\end{equation}
+If we omit $\frac{1}{\sigma_n^2}$ the following will still be proportional because it is a constant. Furthermore, we can combine the two integrals because they have the same bounds yielding
+\begin{equation}
+    \Delta A \propto \langle \int{|x - As|s^T\frac{\pxss}{\int\pxss ds} ds} \rangle
+\end{equation}
+The fraction on the right hand side is equivalent to $P(s|x)$ through application of Bayes' Rule. This yields the following learning rule
+\begin{equation}
+    \Delta A \propto \langle \int{|x - As|s^TP(s|x)ds}\rangle
+\end{equation}
+Thus, learning the basis functions requires us to sample from the posterior {$p(s|x)$} and accumulate the average of the outer product {$[x - As]s^T$} from these samples. Traditionally, since sampling from the posterior can be slow a single sample point at the posterior maximum would be used to approximate the integral. However, now we will approximate this distribution using Look-Ahead Hamiltonian Markov Chain sampling. Given an image patch {$X_i$} we will approximate {$P(s|X_i$} by generating m sample points from the distribution each of dimension \textbf{k}. 
+\par Thus for each $X_i$ we will obtain a matrix of dimension \textbf{k x m}. We average the k dimensional vectors for the image patch $X_i$ to obtain one k - dimensional vector. Generalizing to \textbf{$N$} image patches, for each $X_i$, where i $\in$ 1,2,...N, we will receive a k x m matrix, thus for all samples we will receive a k x m x N matrix. Averaging the matrix for each sample in each k x m matrix yields N, k x 1 vectors. Each of these k dimensional vectors is the approximation to the optimal s values for the corresponding $X_i$. Concatenating each of our k dimensional vectors yields a k x N matrix. This k x N matrix,
+\end{document}
