@@ -1,4 +1,4 @@
-from tflow_lahmc_class import lahmc_sampler
+from tflow_lahmc_class_testing import lahmc_sampler
 import tensorflow as tf
 from scipy import io
 import numpy as np
