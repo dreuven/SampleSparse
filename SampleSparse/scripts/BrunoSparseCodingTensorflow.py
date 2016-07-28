@@ -25,14 +25,14 @@ class TensorSparse:
     energy_function = None
     sess = None
     reconstruction_error_array = []
-    def __init__(self, num_receptive_fields, size_of_patch, batch_size,lambda_parameter, session_object, LR = 1e-1, plot_directory = 'Plots'):
+    def __init__(self, num_receptive_fields, size_of_patch, batch_size,lambda_parameter, session_object, LR = 1e-1, plot_directory = 'Plots', phis = None):
         self.num_receptive_fields = num_receptive_fields
         self.size_of_patch = size_of_patch
         self.batch_size = batch_size
         self.lambda_parameter = lambda_parameter
         self.LR = LR
         if os.path.exists(plot_directory):
-            ms.clear_Paths_folder(plot_directory) 
+            ms.clear_Paths_folder(plot_directory)
         else:
             os.mkdir(plot_directory)
         self.sess = session_object
@@ -40,7 +40,7 @@ class TensorSparse:
         self.data = tf.Variable(tf.truncated_normal(shape = (self.size_of_patch**2, self.batch_size)))
         self.phis = self.create_phis()
         self.a_matr = tf.Variable(tf.zeros(shape = (self.num_receptive_fields, self.batch_size), dtype = tf.float32))
-        self.energy_function = self.energy_function()    
+        self.energy_function = self.energy_function()
         self.train_a_step = tf.train.GradientDescentOptimizer(1e-3).minimize(self.energy_function,var_list = [self.a_matr])
     def energy_function(self):
         reconstruction = tf.matmul(self.phis, self.a_matr)
@@ -52,7 +52,7 @@ class TensorSparse:
         print("LAMBDA PARAM IS: ", self.lambda_parameter)
         a_value_summed = tf.reduce_mean(self.lambda_parameter * tf.reduce_sum(norm_array, reduction_indices=0))
         right_side =  a_value_summed
-        right_side = tf.cast(right_side, tf.float64) 
+        right_side = tf.cast(right_side, tf.float64)
         to_ret = left_side + right_side
         return tf.cast(to_ret, tf.float32)
     def create_phis(self):
@@ -67,10 +67,10 @@ class TensorSparse:
         prev_val = float("inf")
         num_iters = 0
         while abs(curr_val - prev_val) > epsilon and num_iters < 8000:
-            prev_val = curr_val
-            self.sess.run(self.train_a_step)
-            curr_val = session_object.run(self.energy_function)            
-            num_iters += 1
+          prev_val = curr_val
+          self.sess.run(self.train_a_step)
+          curr_val = session_object.run(self.energy_function)
+          num_iters += 1
         a_evaled = self.sess.run(self.a_matr)
         print("Value of objective function after doing inference",curr_val)
         print("Percent active coefficients after we do inference is: {}".format(len(a_evaled[np.abs(a_evaled)>1e-2])/float(self.num_receptive_fields*self.batch_size)))

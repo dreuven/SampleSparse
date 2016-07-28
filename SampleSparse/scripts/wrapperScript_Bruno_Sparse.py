@@ -47,7 +47,6 @@ for i in range(training_iterations):
     our_class.load_data(data_mayur)
     our_class.infer_a_coefficients(sess, i)
     our_class.update_phis()
-    our_class.handle_plotting_in_tensorboard(sess, i)
     plt.figure()
     plt.title("Recon Error")
     plt.plot(our_class.reconstruction_error_array)

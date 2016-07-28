@@ -14,12 +14,13 @@ our_images = io.loadmat(data_path)["IMAGES"]
 ##Parameters##
 num_receptive_fields = 128
 size_of_patch = 10
-batch_size = 200
+batch_size = 1
 lambda_parameter = 1e-1
 LR = 1e-1
 border = 4
 patch_dim = size_of_patch**2
 sz = np.sqrt(patch_dim)
+num_particles_per_batch = 100
 
 ####x
 
@@ -39,10 +40,10 @@ batch_data = get_batch_im(our_images,num_images)
 
 ##Initliaze class###
 sess = tf.Session()
-our_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess)
+our_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_batch)
 ####
 init = tf.initialize_all_variables()
 sess.run(init)
 our_class.load_batch(batch_data)
-print("DATA IS",our_class.batch_data)
+print("Shape of data is", our_class.sess.run(our_class.batch_data).shape)
 our_class.sample(100)
