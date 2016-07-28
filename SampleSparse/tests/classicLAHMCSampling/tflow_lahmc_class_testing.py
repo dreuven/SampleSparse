@@ -23,7 +23,7 @@ class lahmc_sampler:
        # self.phis = np.random.randn(size_of_patch**2, num_receptive_fields)
         self.batch_data = tf.Variable(tf.truncated_normal(shape = (size_of_patch**2, batch_size * num_particles_per_batch)))
         ##Instantiating images just to make the initialiation of the energy function work
-        self.sample_results = None
+        self.sampling_results = None
         self.num_particles_per_batch = num_particles_per_batch
         self.sess.run(tf.initialize_all_variables())
     def load_batch(self,images):
@@ -60,8 +60,11 @@ class lahmc_sampler:
         og_energy = self.E(a)
         return self.sess.run(tf.reduce_sum(og_energy))
     def sample(self,num_steps = 100):
-        Ainit = np.random.randn(self.num_receptive_fields,self.batch_size * self.num_particles_per_batch)
+        Ainit = 5 + np.random.randn(self.num_receptive_fields,self.batch_size * self.num_particles_per_batch)
         sampler = LAHMC.LAHMC(Ainit,self.E_sample,self.gradient)
         A_final = sampler.sample(num_steps)
         print("A final shape is", A_final.shape)
-        self.sample_results = A_final
+        self.sampling_results = A_final
+    def ret_ze_sample_energies(self):
+        energy_values = self.sess.run(self.E(self.sampling_results))
+        return energy_values
