@@ -1,4 +1,5 @@
 from tflow_lahmc_class_testing import lahmc_sampler
+from BrunoSparseCodingTensorflow_for_testing import TensorSparse
 import tensorflow as tf
 from scipy import io
 import numpy as np
@@ -40,10 +41,18 @@ batch_data = get_batch_im(our_images,num_images)
 
 ##Initliaze class###
 sess = tf.Session()
-our_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_batch)
+lahmc_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_batch)
 ####
 init = tf.initialize_all_variables()
 sess.run(init)
-our_class.load_batch(batch_data)
-print("Shape of data is", our_class.sess.run(our_class.batch_data).shape)
-our_class.sample(100)
+lahmc_class.load_batch(batch_data)
+print("Shape of data is", lahmc_class.sess.run(lahmc_class.batch_data).shape)
+lahmc_class.sample(20)
+phi_lahmc = lahmc_class.phis
+bruno_class = TensorSparse(num_receptive_fields = num_receptive_fields, size_of_patch = size_of_patch, batch_size = batch_size,lambda_parameter = lambda_parameter, session_object = sess, LR = 1e-1, plot_directory = 'Bruno_2_comp_LAHMC', phis = phi_lahmc)
+
+bruno_class.load_data(batch_data)
+bruno_class.infer_a_coefficients(sess, 0)
+#Now that we have the a valuesplot the energy
+energy_vals = bruno_class.energy_function_for_plotting()
+print(energy_vals)

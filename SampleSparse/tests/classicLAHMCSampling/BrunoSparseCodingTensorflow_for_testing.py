@@ -40,30 +40,38 @@ class TensorSparse:
         self.data = tf.Variable(tf.truncated_normal(shape = (self.size_of_patch**2, self.batch_size)))
         self.phis = self.create_phis()
         if phis != None:
-          # Note must assign phis through tf.assign since phi is a tensorflow variable
-          assign_phis = tf.assign(self.phis, phis)
-          self.sess.run(assign_phis)
           self.phis = phis
-        self.a_matr = tf.Variable(tf.zeros(shape = (self.num_receptive_fields, self.batch_size), dtype = tf.float32))
-        self.energy_function = self.energy_function()
+        self.a_matr = tf.Variable(tf.zeros(shape = (num_receptive_fields, batch_size), dtype = tf.float32))
+        self.energy_function = self.energy_function_func()
         self.train_a_step = tf.train.GradientDescentOptimizer(1e-3).minimize(self.energy_function,var_list = [self.a_matr])
-    def energy_function(self):
+        self.sess.run(tf.initialize_all_variables())
+    def energy_function_func(self):
         reconstruction = tf.matmul(self.phis, self.a_matr)
         reconstruction = tf.cast(reconstruction, tf.float64)
         squared_error = (tf.cast(self.data,tf.float64) - reconstruction) ** 2.0
         norm_array = tf.abs(self.a_matr)
         left_side = tf.reduce_mean(0.5 * tf.reduce_sum(squared_error, reduction_indices = 0))
         left_side = tf.cast(left_side, tf.float64)
-        print("LAMBDA PARAM IS: ", self.lambda_parameter)
         a_value_summed = tf.reduce_mean(self.lambda_parameter * tf.reduce_sum(norm_array, reduction_indices=0))
         right_side =  a_value_summed
         right_side = tf.cast(right_side, tf.float64)
         to_ret = left_side + right_side
         return tf.cast(to_ret, tf.float32)
-    def assign_phis(self, phis):
-        print("Manually changing value of phis from {0} to {1}".format(self.sess.run(self.phis), self.sess.run(phis)))
-        assign_phis = tf.assign(self.phis, phis)
-        self.sess.run(assign_phis)
+    def energy_function_for_plotting(self):
+      #This function returns an array of energy values for all the samples, this approach is better than taking the sum across all samples
+      #because when comparing to the sampling based methods it will be an unfair comparison since the sampler has N * #particles/sample more
+      #reconstructions.
+        reconstruction = tf.matmul(self.phis, self.a_matr)
+        reconstruction = tf.cast(reconstruction, tf.float64)
+        squared_error = (tf.cast(self.data,tf.float64) - reconstruction) ** 2.0
+        norm_array = tf.abs(self.a_matr)
+        left_side = 0.5 * tf.reduce_sum(squared_error, reduction_indices = 0)
+        left_side = tf.cast(left_side, tf.float64)
+        a_value_summed = self.lambda_parameter * tf.reduce_sum(norm_array, reduction_indices=0)
+        right_side =  a_value_summed
+        right_side = tf.cast(right_side, tf.float64)
+        to_ret = left_side + right_side
+        return self.sess.run(to_ret)
     def create_phis(self):
         return tf.Variable(tf.truncated_normal(shape = (self.size_of_patch**2, self.num_receptive_fields)))
     def load_data(self, data):
@@ -76,6 +84,8 @@ class TensorSparse:
         prev_val = float("inf")
         num_iters = 0
         while abs(curr_val - prev_val) > epsilon and num_iters < 8000:
+          if num_iters %500 == 0:
+            print("Inferring a coefficients in Bruno sparse coding model, on iter {0}".format(num_iters))
           prev_val = curr_val
           self.sess.run(self.train_a_step)
           curr_val = session_object.run(self.energy_function)
