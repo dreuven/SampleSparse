@@ -60,7 +60,7 @@ class lahmc_sampler:
         og_energy = self.E(a)
         return self.sess.run(tf.reduce_sum(og_energy))
     def sample(self,num_steps = 100):
-        Ainit = 5 + np.random.randn(self.num_receptive_fields,self.batch_size * self.num_particles_per_batch)
+        Ainit = np.random.randn(self.num_receptive_fields,self.batch_size * self.num_particles_per_batch)
         sampler = LAHMC.LAHMC(Ainit,self.E_sample,self.gradient)
         A_final = sampler.sample(num_steps)
         print("A final shape is", A_final.shape)

@@ -23,7 +23,7 @@ LR = 1e-1
 border = 4
 patch_dim = size_of_patch**2
 sz = np.sqrt(patch_dim)
-num_particles_per_batch = 100
+num_particles_per_batch = 1
 ##############
 
 
