@@ -42,7 +42,7 @@ class lahmc_sampler:
 
     def gradient(self,a,sigma = 1.):
         print("Dimensions of _a_ input to gradient are", a.shape)
-        gradient = self.sess.run(tf.gradients(tf.reduce_sum(self.E()), [self.a_matr]), feed_dict = {self.a_matr:a}
+        gradient = self.sess.run(tf.gradients(tf.reduce_sum(self.E()), [self.a_matr]), feed_dict = {self.a_matr:a})
         print("Gradient is", gradient)
         return gradient
     def E_sample(self,a):
