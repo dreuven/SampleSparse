@@ -23,7 +23,7 @@ LR = 1e-1
 border = 4
 patch_dim = size_of_patch**2
 sz = np.sqrt(patch_dim)
-num_particles_per_batch = 1
+num_particles_per_batch = 100
 ##############
 
 
@@ -45,7 +45,7 @@ sess = tf.Session()
 lahmc_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_batch)
 ####
 lahmc_class.load_batch(batch_data)
-lahmc_class.sample(20)
+lahmc_class.sample(200)
 #Extracting results from class for plott
 result_energies = lahmc_class.ret_ze_sample_energies()
 print("LAHMC energies are", result_energies)
