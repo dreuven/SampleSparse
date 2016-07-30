@@ -9,6 +9,7 @@ import sys
 import traceback
 import numpy as np
 import numpy.matlib
+import ipdb
 class lahmc_sampler:
     batch_data = None
     def __init__(self, num_receptive_fields, size_of_patch, batch_size,lambda_parameter, session_object, LR = 1e-1, num_particles_per_batch = 1):
@@ -41,6 +42,8 @@ class lahmc_sampler:
         return tmp + sparsity
 
     def gradient(self,a,sigma = 1.):
+        if a.shape[1] != self.batch_size * self.num_particles_per_batch:
+            ipdb.set_trace()
         print("Dimensions of _a_ input to gradient are", a.shape)
         gradient = self.sess.run(tf.gradients(tf.reduce_sum(self.E()), [self.a_matr]), feed_dict = {self.a_matr:a})
         print("Gradient is", gradient)

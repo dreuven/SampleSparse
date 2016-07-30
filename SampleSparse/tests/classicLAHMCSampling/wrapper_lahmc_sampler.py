@@ -38,26 +38,27 @@ def get_batch_im(our_images,num_images):
         batch_data[:,j] = np.reshape(our_images[r:r+sz, c:c+sz, imi-1], patch_dim, 1)
     return batch_data
 
-batch_data = get_batch_im(our_images,num_images)
 
 ##Initliaze class###
 sess = tf.Session()
 lahmc_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_batch)
 ####
-lahmc_class.load_batch(batch_data)
-lahmc_class.sample(200)
+for _ in range(5):
+    batch_data = get_batch_im(our_images,num_images)
+    lahmc_class.load_batch(batch_data)
+    lahmc_class.sample(200)
 #Extracting results from class for plott
 result_energies = lahmc_class.ret_ze_sample_energies()
 print("LAHMC energies are", result_energies)
 plt.plot(result_energies)
 plt.show()
 
-###Initliazing original sparse coding model for comparison###
-phi_lahmc = lahmc_class.phis
-bruno_class = TensorSparse(num_receptive_fields = num_receptive_fields, size_of_patch = size_of_patch, batch_size = batch_size,lambda_parameter = lambda_parameter, session_object = sess, LR = 1e-1, plot_directory = 'Bruno_2_comp_LAHMC', phis = phi_lahmc)
+# ###Initliazing original sparse coding model for comparison###
+# phi_lahmc = lahmc_class.phis
+# bruno_class = TensorSparse(num_receptive_fields = num_receptive_fields, size_of_patch = size_of_patch, batch_size = batch_size,lambda_parameter = lambda_parameter, session_object = sess, LR = 1e-1, plot_directory = 'Bruno_2_comp_LAHMC', phis = phi_lahmc)
 
-bruno_class.load_data(batch_data)
-bruno_class.infer_a_coefficients(sess, 0)
-#Now that we have the a valuesplot the energy
-energy_vals = bruno_class.energy_function_for_plotting()
-print(energy_vals)
+# bruno_class.load_data(batch_data)
+# bruno_class.infer_a_coefficients(sess, 0)
+# #Now that we have the a valuesplot the energy
+# energy_vals = bruno_class.energy_function_for_plotting()
+# print(energy_vals)
