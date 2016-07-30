@@ -15,13 +15,13 @@ our_images = io.loadmat(data_path)["IMAGES"]
 ##Parameters##
 num_receptive_fields = 128
 size_of_patch = 10
-batch_size = 500
+batch_size = 100
 lambda_parameter = 1e-1
 LR = 1e-1
 border = 4
 patch_dim = size_of_patch**2
 sz = np.sqrt(patch_dim)
-num_particles_per_batch = 2
+num_particles_per_batch = 100
 ##############
 
 
@@ -38,11 +38,11 @@ def get_batch_im(our_images,num_images):
 
 our_class = numpy_sampler(num_receptive_fields = num_receptive_fields, size_of_patch = size_of_patch, batch_size = batch_size,lambda_parameter = lambda_parameter, num_particles_per_batch = num_particles_per_batch, LR = LR)
 
-for _ in range(3):
+for _ in range(1):
     print("Starting new update! We are on iter {0}\n".format(_))
     batch_data = get_batch_im(our_images, num_images)
     our_class.load_batch(batch_data)
-    A_final = our_class.sample(num_steps = 1000)
-    print("A final is", A_final)
+    our_class.sample(num_steps = 1000)
+    print("A final is", our_class.sampling_results)
     result_energies = our_class.ret_sample_energies()
     print("Result energy is", result_energies)
