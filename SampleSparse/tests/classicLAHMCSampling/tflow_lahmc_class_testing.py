@@ -19,12 +19,9 @@ class lahmc_sampler:
         self.LR = LR
         self.sess = session_object
         self.phis = tf.Variable(tf.truncated_normal(shape = (size_of_patch**2, num_receptive_fields)))
-        # self.a_matr =  tf.Variable(tf.truncated_normal(shape = ( num_receptive_fields, batch_size * num_particles_per_batch)))
         #Could set the below to  values to None, None or k x N.
         self.a_matr = tf.placeholder("float32", [None, None])
-       # self.phis = np.random.randn(size_of_patch**2, num_receptive_fields)
         self.batch_data = tf.Variable(tf.truncated_normal(shape = (size_of_patch**2, batch_size * num_particles_per_batch)))
-        ##Instantiating images just to make the initialiation of the energy function work
         self.sampling_results = None
         self.num_particles_per_batch = num_particles_per_batch
         self.sess.run(tf.initialize_all_variables())
@@ -33,8 +30,6 @@ class lahmc_sampler:
         print("Original size of images is", images.shape)
         copied_data = np.matlib.repmat(images,1, self.num_particles_per_batch)
         print("Copied size of the data is", copied_data.shape)
-        # print("Original data is", images)
-        # print("Copied data is",copied_data)
         assign_data = tf.assign(self.batch_data, copied_data)
         self.sess.run(assign_data)
 
@@ -47,12 +42,8 @@ class lahmc_sampler:
 
     def gradient(self,a,sigma = 1.):
         print("Dimensions of _a_ input to gradient are", a.shape)
-        #The reason I run the assignment step below is to ensure that self.a_matr is truly a function of self.E(a) because if self.E(a) does not evaluate before [self.a_matr] in the call to tf.gradients then their values will be out of sync.
-        # assign_step = tf.assign(self.a_matr, a
-        # self.sess.run(assign_step)
-        gradient = self.sess.run(tf.gradients(tf.reduce_sum(self.E()), [self.a_matr]), feed_dict = {self.a_matr:a})
+        gradient = self.sess.run(tf.gradients(tf.reduce_sum(self.E()), [self.a_matr]), feed_dict = {self.a_matr:a}
         print("Gradient is", gradient)
-        # gradient = tf.gradients(tf.reduce_sum(self.E(a)),[self.a_matr])
         return gradient
     def E_sample(self,a):
         return self.sess.run(tf.reduce_sum(self.E()), feed_dict = {self.a_matr:a})
