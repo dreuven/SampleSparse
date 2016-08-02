@@ -22,7 +22,7 @@ Here is the code to get us started. Courtesy of Mudigonda et. al:
 \newcommand{\ErrFSinJ}{(I_j_i - \sum_{l=1}^{l=k}\Phi_j_l * a_l_i)}
 The Energy Function from the code in sum notation is:
 \begin{equation}
-    E = \frac{1}{2N} *  \sum_{i=1}^{i=N}\ErrorFunc^2  + \lambda * \frac{1}{N} *  \sum_{i=1}^{i=N}\sum_{j=1}^{j=k}|a_j_i|
+    E = -1 * \frac{1}{2N} *  \sum_{i=1}^{i=N}\ErrorFunc^2  + \lambda * \frac{1}{N} *  \sum_{i=1}^{i=N}\sum_{j=1}^{j=k}|a_j_i|
 \end{equation}
 Energy Gradient W/Respect to Phi: \\
 \begin{equation}
@@ -33,20 +33,20 @@ In Plain English:\\
 \[\frac{dE}{d\Phi_x_y}\] is the update for the x\textsuperscript{th} pixel of the y\textsuperscript{th} receptive field, which can be found by summing over the reconstruction error across all input images at the x\textsuperscript{th} pixel and weighting this error by the strength of the y\textsuperscript{th} pixel phi coefficient for that sample.\\
 In Matrix Form this is:
 \begin{equation}
-    \frac{1}{N}(I - \Phi * a)a^T
+    -1 * \frac{1}{N}(I - \Phi * a)a^T
 \end{equation}
 \\
 Energy Gradient W/Respect to a:
 \begin{equation}
-    \frac{dE}{da_x_y} = \frac{1}{N}\sum_{i=1}^{i=N}\ErrorFunc*\Phi_j_i + \frac{1}{N}\lambda * sign(a_x_y)
+    \frac{dE}{da_x_y} = -1 * \frac{1}{N}\sum_{i=1}^{i=N}\ErrorFunc*\Phi_j_i + \frac{1}{N}\lambda * sign(a_x_y)
 \end{equation}
 Note: The only place where the sum is non-zero is where l = x and i = y. Thus we can ignore the $\frac{1}{N}$ since it is just $\frac{1}{1}$ and the summation over i, which is just the sum of one value of i. This becomes:
 \begin{equation}
-    \frac{dE}{da_x_y} = (\sum_(j=1)^(j=p)I_j_y - \sum_(l=1)^(l=k)\Phi_j_l* a_l_y)*\Phi_j_x + \lambda * sign(a_x_y)
+    \frac{dE}{da_x_y} = -1 * [\sum_{j=1}^{j=p}I_j_y - \sum_{l=1}^{l=k}\Phi_j_l* a_l_y]*\Phi_j_x + \lambda * sign(a_x_y)
 \end{equation}
-This equation makes intuitve sense when considering what $\frac{dE}{da_x_y}$ means. It is finding the derivative for the coefficient of the x\textsuperscript{th} basis function in the y\textsuperscript{th} sample. This is why we don't sum over all of the samples and this is why we weight the reconstruction error by the activation of the x\textsuperscript{th} phi. In matrix notation this amounts to:
+This equation makes intuitive sense when considering what $\frac{dE}{da_x_y}$ means. It is finding the derivative for the coefficient of the x\textsuperscript{th} basis function in the y\textsuperscript{th} sample. This is why we don't sum over all of the samples and this is why we weight the reconstruction error by the activation of the x\textsuperscript{th} phi. In matrix notation this amounts to:
 \begin{equation}
-    \frac{dE}{dA} = (I - \Phi*a)^T*\Phi + \lambda*sign(a)
+    \frac{dE}{dA} = -1 * ((I - \Phi*a)^T*\Phi)^T + \lambda*sign(a)
 \end{equation}
 \end{document}
 
