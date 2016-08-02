@@ -1,11 +1,11 @@
 from tflow_lahmc_class_testing import lahmc_sampler
 from BrunoSparseCodingTensorflow_for_testing import TensorSparse
-import tensorflow as tf
 from scipy import io
 import numpy as np
 import random
 import os
 import matplotlib.pyplot as  plt
+import ipdb
 #Load images
 DATA = os.getenv('DATA')
 proj_path = DATA + 'SampleSparse/'
@@ -17,13 +17,13 @@ our_images = io.loadmat(data_path)["IMAGES"]
 ##Parameters##
 num_receptive_fields = 128
 size_of_patch = 10
-batch_size = 10
+batch_size = 100
 lambda_parameter = 1e-1
 LR = 1e-1
 border = 4
 patch_dim = size_of_patch**2
 sz = np.sqrt(patch_dim)
-num_particles_per_batch = 10
+num_particles_per_batch = 100
 ##############
 
 
@@ -44,16 +44,25 @@ def get_batch_im(our_images,num_images):
 sess = "poop"
 lahmc_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_batch)
 ####
-for _ in range(5):
+for _ in range(100):
     print("\n\n On iter {0} \n".format(_))
     batch_data = get_batch_im(our_images,num_images)
     lahmc_class.load_batch(batch_data)
-    lahmc_class.sample(200)
+    lahmc_class.sample(1000)
 #Extracting results from class for plott
 result_energies = lahmc_class.ret_ze_sample_energies()
 print("LAHMC energies are", result_energies)
-plt.plot(result_energies)
+all_points = []
+for list_pts in result_energies:
+    for pt in list_pts:
+        all_points.append(pt)
+x = np.arange(len(all_points))
+plt.plot(x,all_points, 'ro')
+ipdb.set_trace()
 plt.show()
+
+# plt.plot(result_energies)
+# plt.show()
 
 # ###Initliazing original sparse coding model for comparison###
 # phi_lahmc = lahmc_class.phis

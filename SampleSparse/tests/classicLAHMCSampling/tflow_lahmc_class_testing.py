@@ -25,7 +25,7 @@ class lahmc_sampler:
         # self.batch_data = tf.Variable(tf.truncated_normal(shape = (size_of_patch**2, batch_size * num_particles_per_batch)))
         self.batch_data = tf.placeholder("float32", [None, None])
         self.data_locker = None
-        self.sampling_results = None
+        self.sampling_results = []
         self.num_particles_per_batch = num_particles_per_batch
         self.sum_variable = tf.reduce_sum(self.E())
         self.gradient_w_resp_a = tf.gradients(self.sum_variable, [self.a_matr])[0]
@@ -56,19 +56,21 @@ class lahmc_sampler:
     def gradient(self,a,sigma = 1.):
         if a.shape[1] != self.batch_size * self.num_particles_per_batch:
             ipdb.set_trace()
-        print("Dimensions of _a_ input to gradient are", a.shape)
+        # print("Dimensions of _a_ input to gradient are", a.shape)
         gradient = self.sess.run(self.gradient_w_resp_a, feed_dict =
-                                 {self.a_matr:np.copy(a), self.batch_data:self.data_locker})
+                                 {self.a_matr:a, self.batch_data:self.data_locker})
         # print("Gradient is", gradient)
         return gradient
     def E_sample(self,a):
-        return self.sess.run(self.sum_variable, feed_dict = {self.a_matr:np.copy(a), self.batch_data:self.data_locker})
+        return self.sess.run(self.sum_variable, feed_dict = {self.a_matr:a, self.batch_data:self.data_locker})
     def sample(self,num_steps = 100):
         Ainit = np.random.randn(self.num_receptive_fields, self.batch_size * self.num_particles_per_batch)
-        sampler = LAHMC.LAHMC(Ainit,self.E_sample,self.gradient)
+        sampler = LAHMC.LAHMC(Ainit,self.E_sample,self.gradient, epsilon=1., beta=0.1, num_look_ahead_steps=1)
         A_final = sampler.sample(num_steps)
-        print("A final shape is", A_final.shape)
-        self.sampling_results = A_final
+        self.sampling_results.append(A_final)
     def ret_ze_sample_energies(self):
-        energy_values = self.sess.run(self.E(), feed_dict = {self.a_matr: self.sampling_results, self.batch_data: self.data_locker})
-        return energy_values
+        energy_vals_to_ret = []
+        for results in self.sampling_results:
+            energy_value = self.sess.run(self.E(), feed_dict = {self.a_matr: results, self.batch_data: self.data_locker})
+            energy_vals_to_ret.append(energy_value)
+        return energy_vals_to_ret
