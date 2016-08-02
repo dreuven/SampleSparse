@@ -17,7 +17,7 @@ our_images = io.loadmat(data_path)["IMAGES"]
 ##Parameters##
 num_receptive_fields = 128
 size_of_patch = 10
-batch_size = 1
+batch_size = 10
 lambda_parameter = 1e-1
 LR = 1e-1
 border = 4
@@ -44,9 +44,10 @@ sess = tf.Session()
 lahmc_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_batch)
 ####
 for _ in range(5):
+    print("\n\n On iter {0} \n".format(_))
     batch_data = get_batch_im(our_images,num_images)
     lahmc_class.load_batch(batch_data)
-    lahmc_class.sample(200)
+    lahmc_class.sample(1000)
 #Extracting results from class for plott
 result_energies = lahmc_class.ret_ze_sample_energies()
 print("LAHMC energies are", result_energies)

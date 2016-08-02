@@ -25,6 +25,7 @@ class lahmc_sampler:
         self.batch_data = tf.Variable(tf.truncated_normal(shape = (size_of_patch**2, batch_size * num_particles_per_batch)))
         self.sampling_results = None
         self.num_particles_per_batch = num_particles_per_batch
+        self.sum_variable = tf.Variable(tf.reduce_sum(self.E()))
         self.sess.run(tf.initialize_all_variables())
     def load_batch(self,images):
         print("In load data")
