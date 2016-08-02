@@ -40,7 +40,8 @@ def get_batch_im(our_images,num_images):
 
 
 ##Initliaze class###
-sess = tf.Session()
+# sess = tf.Session()
+sess = "poop"
 lahmc_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_batch)
 ####
 for _ in range(5):

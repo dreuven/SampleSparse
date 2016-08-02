@@ -18,22 +18,33 @@ class lahmc_sampler:
         self.batch_size = batch_size
         self.lambda_parameter = lambda_parameter
         self.LR = LR
-        self.sess = session_object
+        self.sess = tf.Session()
         self.phis = tf.Variable(tf.truncated_normal(shape = (size_of_patch**2, num_receptive_fields)))
         #Could set the below to  values to None, None or k x N.
         self.a_matr = tf.placeholder("float32", [None, None])
-        self.batch_data = tf.Variable(tf.truncated_normal(shape = (size_of_patch**2, batch_size * num_particles_per_batch)))
+        # self.batch_data = tf.Variable(tf.truncated_normal(shape = (size_of_patch**2, batch_size * num_particles_per_batch)))
+        self.batch_data = tf.placeholder("float32", [None, None])
+        self.data_locker = None
         self.sampling_results = None
         self.num_particles_per_batch = num_particles_per_batch
-        self.sum_variable = tf.Variable(tf.reduce_sum(self.E()))
+        self.sum_variable = tf.reduce_sum(self.E())
+        self.gradient_w_resp_a = tf.gradients(self.sum_variable, [self.a_matr])
         self.sess.run(tf.initialize_all_variables())
     def load_batch(self,images):
-        print("In load data")
+        print("Loading Data.")
         print("Original size of images is", images.shape)
-        copied_data = np.matlib.repmat(images,1, self.num_particles_per_batch)
+        print("Now going to normalize images")
+        images_ = images ** 2
+        l_2_norm_columns = np.sqrt(images_.sum(axis = 0))
+        images_ = images/l_2_norm_columns
+        # check_im = images_**2
+        # check_im = np.sum(check_im, axis = 0)
+        # check_im = np.sqrt(check_im)
+        copied_data = np.matlib.repmat(images_,1, self.num_particles_per_batch)
         print("Copied size of the data is", copied_data.shape)
-        assign_data = tf.assign(self.batch_data, copied_data)
-        self.sess.run(assign_data)
+        # assign_data = tf.assign(self.batch_data, copied_data)
+        # self.sess.run(assign_data)
+        self.data_locker = copied_data
 
     def E(self,sigma = 1.):
         reconstruction_error = self.batch_data - tf.matmul(self.phis,self.a_matr)
@@ -45,12 +56,12 @@ class lahmc_sampler:
     def gradient(self,a,sigma = 1.):
         if a.shape[1] != self.batch_size * self.num_particles_per_batch:
             ipdb.set_trace()
-        print("Dimensions of _a_ input to gradient are", a.shape)
-        gradient = self.sess.run(tf.gradients(tf.reduce_sum(self.E()), [self.a_matr]), feed_dict = {self.a_matr:a})
-        print("Gradient is", gradient)
+        # print("Dimensions of _a_ input to gradient are", a.shape)
+        gradient = self.sess.run(self.gradient_w_resp_a, feed_dict = {self.a_matr:a, self.batch_data:self.data_locker})
+        # print("Gradient is", gradient)
         return gradient
     def E_sample(self,a):
-        return self.sess.run(tf.reduce_sum(self.E()), feed_dict = {self.a_matr:a})
+        return self.sess.run(self.sum_variable, feed_dict = {self.a_matr:a, self.batch_data:self.data_locker})
     def sample(self,num_steps = 100):
         Ainit = np.random.randn(self.num_receptive_fields,self.batch_size * self.num_particles_per_batch)
         sampler = LAHMC.LAHMC(Ainit,self.E_sample,self.gradient)
