@@ -23,7 +23,7 @@ LR = 1e-1
 border = 4
 patch_dim = size_of_patch**2
 sz = np.sqrt(patch_dim)
-num_particles_per_batch = 100
+num_particles_per_batch = 10
 ##############
 
 
@@ -48,7 +48,7 @@ for _ in range(5):
     print("\n\n On iter {0} \n".format(_))
     batch_data = get_batch_im(our_images,num_images)
     lahmc_class.load_batch(batch_data)
-    lahmc_class.sample(1000)
+    lahmc_class.sample(200)
 #Extracting results from class for plott
 result_energies = lahmc_class.ret_ze_sample_energies()
 print("LAHMC energies are", result_energies)
