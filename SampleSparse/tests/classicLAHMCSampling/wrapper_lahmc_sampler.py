@@ -17,13 +17,13 @@ our_images = io.loadmat(data_path)["IMAGES"]
 ##Parameters##
 num_receptive_fields = 128
 size_of_patch = 10
-batch_size = 100
+batch_size = 5
 lambda_parameter = 1e-1
 LR = 1e-1
 border = 4
 patch_dim = size_of_patch**2
 sz = np.sqrt(patch_dim)
-num_particles_per_batch = 100
+num_particles_per_image = 100
 ##############
 
 
@@ -42,7 +42,7 @@ def get_batch_im(our_images,num_images):
 ##Initliaze class###
 # sess = tf.Session()
 sess = "poop"
-lahmc_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_batch)
+lahmc_class = lahmc_sampler(num_receptive_fields,size_of_patch,batch_size,lambda_parameter,session_object = sess, num_particles_per_batch = num_particles_per_image)
 ####
 for _ in range(100):
     print("\n\n On iter {0} \n".format(_))
